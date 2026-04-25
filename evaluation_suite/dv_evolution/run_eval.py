@@ -197,7 +197,7 @@ def main():
     }
     out_path.write_text(json.dumps({"results": results, "summary": summary}, ensure_ascii=False, indent=2), encoding="utf-8")
     print(
-        f"写入结果到 {out_path}，共 {total_cases} 条。汇总：vis={avg_vis*100:.2f}%, table={avg_table*100:.2f}%, score={avg_score*100:.2f}%"
+        f"Wrote results to {out_path}; total cases: {total_cases}. Summary: vis={avg_vis*100:.2f}%, table={avg_table*100:.2f}%, score={avg_score*100:.2f}%"
     )
 
 

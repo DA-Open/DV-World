@@ -132,7 +132,6 @@ def _parse_vlm_json(content: str, max_scores: Dict[str, float]) -> Dict[str, Any
     total_norm = max(0.0, min(1.0, total_raw / total_points)) if total_points and total_points > 0 else 0.0
 
     if max_scores:
-        # 若维度名为 Dimension_x，则按 metadata 顺序重命名
         if dims_raw and all(k.lower().startswith("dimension") for k in dims_raw.keys()) and rubric_keys_order:
             remapped = {}
             for idx, dk in enumerate(sorted(dims_raw.keys())):
@@ -141,7 +140,6 @@ def _parse_vlm_json(content: str, max_scores: Dict[str, float]) -> Dict[str, Any
                 else:
                     remapped[dk] = dims_raw.get(dk, 0.0)
             dims_raw = remapped
-        # 填充缺失维度为 0
         for dk in max_scores:
             if dk.lower() == "total":
                 continue

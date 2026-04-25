@@ -53,8 +53,8 @@ def _is_broken_filename(p: Path) -> bool:
 def find_gold_and_broken(case_gold_dir: Path) -> tuple[Optional[Path], Optional[Path]]:
     """
     Convention (requested):
-    - Gold dir contains both the gold xlsx and一个 broken 版本。
-    - 识别规则：文件名含 gold 视为 gold；含 start/broken 视为 broken；否则按顺序兜底。
+    - Gold dir contains both the gold xlsx and a broken version.
+    - Detection rules: filenames containing gold are treated as gold; filenames containing start/broken are treated as broken; otherwise fall back to sorted order.
     """
     excels = [
         p
@@ -73,9 +73,7 @@ def find_gold_and_broken(case_gold_dir: Path) -> tuple[Optional[Path], Optional[
     if gold_candidates:
         gold = gold_candidates[0]
     else:
-        # 兜底：选择第一个非 broken 的作为 gold
         gold = next((p for p in excels if p not in broken_candidates), None)
-        # 如果全是 broken，则退回第一个文件
         if gold is None and excels:
             gold = excels[0]
 
@@ -95,24 +93,24 @@ def _find_broken_only(case_dir: Path) -> Optional[Path]:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="批量评估 DVSheet-Fix（候选 Excel vs Gold Excel）")
-    parser.add_argument("--inputs", required=True, type=Path, help="候选结果目录，子目录为 case")
+    parser = argparse.ArgumentParser(description="Batch-evaluate DVSheet-Fix (candidate Excel vs gold Excel)")
+    parser.add_argument("--inputs", required=True, type=Path, help="Candidate results directory; subdirectories are cases")
     parser.add_argument(
         "--broken-dir",
         type=Path,
         default="DV-Sheet/gold",
-        help="broken 根目录（与 gold 同样按 <case_id> 存放 .xlsx）。提供后使用 broken->gold 推导 must-fix，并做 0/1 判定。",
+        help="Broken root directory, storing .xlsx files by <case_id> like gold. When provided, uses broken->gold to infer must-fix fields and applies a binary check.",
     )
-    parser.add_argument("--gold-dir", type=Path, default=Path("DV-Sheet/gold"), help="gold 根目录")
+    parser.add_argument("--gold-dir", type=Path, default=Path("DV-Sheet/gold"), help="Gold root directory")
     parser.add_argument(
         "--out-dir",
         dest="out_dir",
         type=Path,
         default=Path("evaluation_suite/model_score"),
-        help="输出根目录（会在其中创建 inputs 同名子目录并写 dvsheet-fix-results.json）",
+        help="Output root directory; creates an inputs-named subdirectory and writes dvsheet-fix-results.json",
     )
-    parser.add_argument("--visible", action="store_true", help="调试用：显示 Excel 窗口（默认隐藏）")
-    parser.add_argument("--workers", type=int, default=1, help="并行评估进程数（默认1）")
+    parser.add_argument("--visible", action="store_true", help="Debug mode: show the Excel window")
+    parser.add_argument("--workers", type=int, default=1, help="Number of parallel evaluation workers")
     args = parser.parse_args()
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
@@ -130,7 +128,6 @@ def main():
         broken_xlsx: Optional[Path] = None
         try:
             if args.broken_dir is not None:
-                # 优先使用文件名包含 start 的 broken 文件，避免误用 gold
                 broken_xlsx = _find_broken_only(args.broken_dir / case_id)
                 if not broken_xlsx:
                     broken_xlsx = find_first_excel(args.broken_dir / case_id)
@@ -195,7 +192,7 @@ def main():
     # Append summary into JSON (keep backward compatibility by wrapping)
     with out_path.open("w", encoding="utf-8") as f:
         json.dump({"results": _as_jsonable(results), "summary": summary}, f, ensure_ascii=False, indent=2)
-    print(f"写入结果到 {out_path}，共 {total_cases} 条。汇总：score={avg_score*100:.3f}%")
+    print(f"Wrote results to {out_path}; total cases: {total_cases}. Summary: score={avg_score*100:.3f}%")
 
 
 if __name__ == "__main__":

@@ -20,17 +20,17 @@ Each criterion score = direct binary scoring (0/1).
 
 Please strictly follow the rubric and verify whether the assistant’s chart meets each requirement.
 
-【User Question Start】
+[User Question Start]
 {user_query}
-【User Question End】
+[User Question End]
 
-【Trajectory Data Start】
+[Trajectory Data Start]
 {trajectory}
-【Trajectory Data End】
+[Trajectory Data End]
 
-【Rubric Items Start】
+[Rubric Items Start]
 {rubric}
-【Rubric Items End】
+[Rubric Items End]
 
 You must analyze and score each rubric criterion. Please output the evaluation results strictly in the following JSON format:
 
@@ -67,80 +67,3 @@ You must analyze and score each rubric criterion. Please output the evaluation r
 }}
 ```
 """
-
-
-
-
-
-# RUBRIC_PROMPT_ZH = """
-# # 任务说明
-# 你是一个数据可视化与分析专家，你将基于给定的用户问题和助手回复，对助手的可视化的图和任务轨迹进行评估。
-# 你的任务是查看数据可视化图以及对应的轨迹和评分标准，然后根据该评分标准，对助手的生成的图、轨迹和对应的数值进行严格打分。
-
-# # 评分标准说明
-# 评估标准中会给出总分和解决问题所需满足的不同需求。其中：
-# - 总分：表示各项评分标准加和后的最高得分；
-# - 需求：表示助手需要满足的不同需求，每个需求会有多个评分标准。
-
-# 请严格按照评分标准逐条检查：
-# 1. **交互评估 (Dimension 1):** 检查【轨迹数据】中的对话记录。
-# 2. **逻辑评估 (Dimension 2):** 检查【轨迹数据】中助手生成的**最后一段 Python 代码**。
-# 3. **展示评估 (Dimension 3):** 检查【可视化图】的效果是否符合要求。
-
-# # 最终算分逻辑：
-# 最终得分=各需求得分之和。
-# 分需求得分=各评分标准得分
-# 各评分标准得分=直接评分(0/1)
-
-# 请严格按照评分标准逐条检查助手完成的图是否符合要求。
-
-# 【用户问题开始】
-# {user_query}
-# 【用户问题结束】
-
-# 【轨迹数据开始】
-# {trajectory}
-# 【轨迹数据结束】
-
-# 【评分标准项开始】
-# {rubric}
-# 【评分标准项结束】
-
-# 你需要根据评分标注逐条进行分析并打分，请严格按照以下 JSON 格式输出评估结果：
-# # 回复格式如下：
-# ```json
-# {{
-#     "Dimension_1": {{
-#         "标准 1.1": {{
-#             "score": <0 or 1>,
-#             "reasoning": "Quote specific dialogue or explain why."
-#         }},
-#         "标准 1.2": {{
-#             "score": <0 or 1>,
-#             "reasoning": "..."
-#         }},
-#         "标准 1.x": {{
-#             "score": <0 or 1>,
-#             "reasoning": "..."
-#         }},
-#         "subtotal": <Sum of Dim 1>
-#     }},
-#     "Dimension_x": {{
-#         "标准 x.1": {{
-#             "score": <0 or 1>,
-#             "reasoning": "Final code uses y='...'"
-#         }},
-#         "标准 x.2": {{  
-#             "score": <0 or 1>,
-#             "reasoning": "Final code uses x='...'"
-#         }},
-#         "subtotal": <Sum of Dim x>
-#     }},
-#     "Total_Score": <Sum of all subtotals>,
-# }}
-# ```
-# """
-
-
-
-

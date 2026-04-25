@@ -5,8 +5,8 @@ import os
 model_config = {
     "gemini-2.5-flash": {
         "model_name": "gemini-2.5-flash",
-        "base_url": "https://search.bytedance.net/gpt/openapi/online/multimodal/crawl",
-        "api_key": "qYfyWpYZO0y7T8GaojQcCQOxFNy1uayJ_GPT_AK",
+        "base_url": "xxxx",
+        "api_key": "",
         "api_version": "2024-08-01-preview",
         "generate_kwargs": {"max_tokens": 16384, "temperature": 0},
     },

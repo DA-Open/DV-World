@@ -51,7 +51,7 @@ def find_first(path: Path, exts) -> Optional[Path]:
 
 def _load_metadata(meta_path: Path) -> dict:
     """
-    兼容不同缩进 / 额外空格 / BOM / 尾逗号的 metadata.json。
+    Parse metadata.json with varied indentation, extra spaces, BOM, or trailing commas.
     """
     raw = meta_path.read_text(encoding="utf-8", errors="ignore")
     for loader in (
@@ -62,7 +62,6 @@ def _load_metadata(meta_path: Path) -> dict:
             return loader(raw)
         except Exception:
             pass
-    # 尝试清理尾逗号与注释再解析
     cleaned = re.sub(r"//.*?$|/\\*.*?\\*/", "", raw, flags=re.MULTILINE | re.DOTALL)
     cleaned = re.sub(r",\\s*([}\\]])", r"\\1", cleaned)
     try:
@@ -72,22 +71,22 @@ def _load_metadata(meta_path: Path) -> dict:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="批量评估 DVSheet-Dashboards（rubric + LLM）")
-    parser.add_argument("--inputs", required=True, type=Path, help="候选结果目录，子目录为 case")
-    parser.add_argument("--gold-dir", type=Path, default=Path("DV-Sheet/gold"), help="gold 根目录")
+    parser = argparse.ArgumentParser(description="Batch-evaluate DVSheet-Dashboards (rubric + LLM)")
+    parser.add_argument("--inputs", required=True, type=Path, help="Candidate results directory; subdirectories are cases")
+    parser.add_argument("--gold-dir", type=Path, default=Path("DV-Sheet/gold"), help="Gold root directory")
     parser.add_argument(
         "--out-dir",
         dest="out_dir",
         type=Path,
         default=Path("evaluation_suite/model_score"),
-        help="输出根目录（会在其中创建 inputs 同名子目录并写 dvsheet-dashboards-results.json）",
+        help="Output root directory; creates an inputs-named subdirectory and writes dvsheet-dashboards-results.json",
     )
-    parser.add_argument("--model", default="gemini-2.5-flash", help="模型配置名")
-    parser.add_argument("--sheet", default=None, help="指定导出工作表名（默认自动选择图表最多的可见表）")
-    parser.add_argument("--out-prefix", default="dashboard_chart_", help="导出图片前缀（默认 dashboard_chart_）")
-    parser.add_argument("--max-charts", type=int, default=0, help="最多导出多少个图表（0=不限制）")
-    parser.add_argument("--visible", action="store_true", help="调试用：显示 Excel 窗口（默认隐藏）")
-    parser.add_argument("--workers", type=int, default=1, help="并行评估进程数（默认1）")
+    parser.add_argument("--model", default="gemini-2.5-flash", help="Model config name")
+    parser.add_argument("--sheet", default=None, help="Worksheet name to export; defaults to the visible sheet with the most charts")
+    parser.add_argument("--out-prefix", default="dashboard_chart_", help="Exported image filename prefix")
+    parser.add_argument("--max-charts", type=int, default=0, help="Maximum number of charts to export; 0 means no limit")
+    parser.add_argument("--visible", action="store_true", help="Debug mode: show the Excel window")
+    parser.add_argument("--workers", type=int, default=1, help="Number of parallel evaluation workers")
     args = parser.parse_args()
 
     results = []
@@ -102,7 +101,6 @@ def main():
     def _format_case(rec: dict) -> str:
         score = (rec.get("score") or 0.0) * 100
         dims_norm = rec.get("vlm_dims_norm") or {}
-        # 如果没有归一化维度，则用 raw/max_scores 计算一次
         if not dims_norm:
             raw = rec.get("vlm_dims_raw") or {}
             mx = rec.get("vlm_max_scores") or {}
@@ -268,8 +266,8 @@ def main():
     with out_path.open("w", encoding="utf-8") as f:
         json.dump({"results": results, "summary": summary}, f, ensure_ascii=False, indent=2)
     print(
-        f"写入结果到 {out_path}，共 {total_cases} 条。"
-        f"汇总：score={avg_score*100:.3f}%"
+        f"Wrote results to {out_path}; total cases: {total_cases}."
+        f"Summary: score={avg_score*100:.3f}%"
         + (f", dims={{{', '.join(f'{k}={v*100:.3f}%' for k, v in avg_dims.items())}}}" if avg_dims else "")
     )
 

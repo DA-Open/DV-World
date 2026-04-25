@@ -503,7 +503,7 @@ def series_similarity(g: SeriesSpec, c: SeriesSpec) -> float:
 
     def _is_default_name(s: str) -> bool:
         s = (s or "").strip()
-        return bool(re.match(r"^(series|系列)\s*\d+$", s, flags=re.IGNORECASE))
+        return bool(re.match(r"^(series)\s*\d+$", s, flags=re.IGNORECASE))
 
     gn = (g.name or "").strip()
     cn = (c.name or "").strip()
@@ -733,8 +733,6 @@ def evaluate_candidate_with_broken(
         "display_blanks_as": 1.0,
         "category_axis_type": 1.0,
         "value_axis_scale_type": 1.0,
-        # 轴范围是否自动/手动不作为 must-fix 比较
-        # 系列匹配允许轻微偏差
         "series": 0.95,
     }
     if aspect_thresholds:

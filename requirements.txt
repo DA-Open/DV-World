@@ -1,0 +1,25 @@
+# Core agent/runtime dependencies
+gymnasium
+requests
+pandas
+pyyaml
+openai
+duckdb
+matplotlib
+huggingface_hub
+scipy
+numpy
+seaborn
+scikit-learn
+loguru
+tenacity
+tqdm
+
+# Workbook and evaluation dependencies
+openpyxl
+pillow
+xlwings
+
+# Optional database backends used by agent SQL templates
+google-cloud-bigquery
+snowflake-connector-python

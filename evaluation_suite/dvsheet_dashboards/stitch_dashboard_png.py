@@ -161,7 +161,7 @@ def _find_merge(merges: List[Tuple[int, int, int, int]], r: int, c: int) -> Opti
 
 def _draw_cell_borders(draw, cell, x0: int, y0: int, x1: int, y1: int):
     """
-    绘制单元格边框（根据 Excel 边框样式）
+    Draw cell borders based on Excel border styles.
     """
     try:
         border = cell.border
@@ -169,17 +169,17 @@ def _draw_cell_borders(draw, cell, x0: int, y0: int, x1: int, y1: int):
             return
         
         def get_border_color(side):
-            """提取边框颜色"""
+            """Extract border color."""
             if not side or not side.style:
                 return None
             if side.color:
                 rgb = _rgb_from_openpyxl_color(side.color)
                 if rgb:
                     return rgb
-            return (0, 0, 0)  # 默认黑色
+            return (0, 0, 0)
         
         def get_line_width(side):
-            """根据边框样式返回线宽"""
+            """Return line width for a border style."""
             if not side or not side.style:
                 return 0
             style = str(side.style).lower()
@@ -192,7 +192,6 @@ def _draw_cell_borders(draw, cell, x0: int, y0: int, x1: int, y1: int):
             else:
                 return 1
         
-        # 绘制四条边
         if border.top and border.top.style:
             color = get_border_color(border.top)
             width = get_line_width(border.top)
@@ -591,15 +590,15 @@ def resolve_png_path(case_dir: Path, png_field: str) -> Path:
 def main():
     import argparse
 
-    parser = argparse.ArgumentParser(description="拼接仪表盘图表 PNG 为一张大图（不依赖 Excel）")
-    parser.add_argument("--case-dir", required=True, type=Path, help="case 目录，包含 dashboard_charts.json 与 chart PNG")
-    parser.add_argument("--manifest", default="dashboard_charts.json", help="manifest 文件名")
-    parser.add_argument("--out", default="dashboard_stitched.png", help="输出 PNG 文件名")
-    parser.add_argument("--with-text", action="store_true", help="渲染仪表盘表格/标题的文本层（无背景格式）")
-    parser.add_argument("--layout", default="dashboard_layout.json", help="layout 文件名（--with-text 时使用）")
-    parser.add_argument("--workbook", default=None, type=Path, help="xlsx 路径（默认从 case-dir 自动寻找）")
-    parser.add_argument("--grid", action="store_true", help="绘制浅色网格线（--with-text 时可选）")
-    parser.add_argument("--font-scale", type=float, default=1.0, help="文本层字号缩放（默认 1.0）")
+    parser = argparse.ArgumentParser(description="Stitch dashboard chart PNG files into one image without Excel")
+    parser.add_argument("--case-dir", required=True, type=Path, help="Case directory containing dashboard_charts.json and chart PNG files")
+    parser.add_argument("--manifest", default="dashboard_charts.json", help="Manifest filename")
+    parser.add_argument("--out", default="dashboard_stitched.png", help="Output PNG filename")
+    parser.add_argument("--with-text", action="store_true", help="Render a text layer for dashboard tables and titles without background formatting")
+    parser.add_argument("--layout", default="dashboard_layout.json", help="Layout filename used with --with-text")
+    parser.add_argument("--workbook", default=None, type=Path, help="XLSX path; defaults to auto-discovery under case-dir")
+    parser.add_argument("--grid", action="store_true", help="Draw light grid lines; optional with --with-text")
+    parser.add_argument("--font-scale", type=float, default=1.0, help="Text layer font scale; default 1.0")
     args = parser.parse_args()
 
     if args.with_text:

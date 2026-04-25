@@ -1,19 +1,19 @@
 """
-批量评估 DVSheet Create 任务。
+Batch-evaluate DVSheet Create tasks.
 
-用法示例：
+Usage example:
 python evaluation_suite/dvsheet_create/run_eval.py \
   --inputs evaluation_suite/results/codex \
   --gold-dir evaluation_suite/gold \
   --out-dir evaluation_suite/model_score \
   --model gemini-2.5-flash
 
-输出：在 out-dir 下生成一个子目录（以 inputs 目录名命名），其中写入 results.json，包含所有 case 的评估结果。
+Output is written to an inputs-named subdirectory under out-dir, including results.json for all cases.
 
-约定：
-- inputs 目录下每个子目录为一个 case（如 desheet-create-001），其中包含候选 Excel（首个 .xlsx/.xls）。
-- 若有图表 PNG（首个 .png/.jpg），会作为多模态输入参与视觉评分；否则视觉分为 0。
-- gold 目录下按 case_id 存放 query.md、rubric.md。
+Conventions:
+- Each inputs subdirectory is a case and contains the candidate Excel file.
+- The first chart PNG/JPG, when present, is used as multimodal input; otherwise the visual score is 0.
+- The gold directory stores query.md and rubric.md by case_id.
 """
 
 from __future__ import annotations
@@ -29,7 +29,6 @@ from openpyxl import load_workbook
 
 
 def _ensure_repo_on_path():
-    # 将仓库根目录加入 sys.path，避免 ModuleNotFoundError
     root = Path(__file__).resolve().parents[2]
     sys.path.append(str(root))
 
@@ -132,11 +131,11 @@ def _eval_one(args_tuple):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="批量评估 DVSheet Create 任务")
-    parser.add_argument("--inputs", required=True, type=Path, help="候选结果目录，子目录为 case")
-    parser.add_argument("--gold-dir", type=Path, default="DV-Sheet/gold", help="gold 根目录")
-    parser.add_argument("--out-dir", dest="out_dir", type=Path, default=Path("evaluation_suite/model_score"), help="输出根目录（会在其中创建 inputs 同名子目录并写 results.json）")
-    parser.add_argument("--model", default="gemini-2.5-flash", help="模型配置名")
+    parser = argparse.ArgumentParser(description="Batch-evaluate DVSheet Create tasks")
+    parser.add_argument("--inputs", required=True, type=Path, help="Candidate results directory; subdirectories are cases")
+    parser.add_argument("--gold-dir", type=Path, default="DV-Sheet/gold", help="Gold root directory")
+    parser.add_argument("--out-dir", dest="out_dir", type=Path, default=Path("evaluation_suite/model_score"), help="Output root directory; creates an inputs-named subdirectory and writes results.json")
+    parser.add_argument("--model", default="gemini-2.5-flash", help="Model config name")
     parser.add_argument(
         "--combine-mode",
         choices=["product", "weighted"],
@@ -145,7 +144,7 @@ def main():
     )
     parser.add_argument("--vis-weight", type=float, default=0.5, help="Visual score weight when combine-mode=weighted.")
     parser.add_argument("--table-weight", type=float, default=0.5, help="Table score weight when combine-mode=weighted.")
-    parser.add_argument("--workers", type=int, default=1, help="并行评估的进程数（默认1）")
+    parser.add_argument("--workers", type=int, default=1, help="Number of parallel evaluation workers")
     args = parser.parse_args()
 
     results = []
@@ -224,8 +223,8 @@ def main():
     with out_path.open("w", encoding="utf-8") as f:
         json.dump({"results": results, "summary": summary}, f, ensure_ascii=False, indent=2)
     print(
-        f"写入结果到 {out_path}，共 {total_cases} 条。"
-        f"汇总：score={avg*100:.3f}%, vis={avg_vis*100:.3f}%, table={avg_table*100:.3f}%"
+        f"Wrote results to {out_path}; total cases: {total_cases}."
+        f"Summary: score={avg*100:.3f}%, vis={avg_vis*100:.3f}%, table={avg_table*100:.3f}%"
         + (f", dims={{{', '.join(f'{k}={v*100:.3f}%' for k, v in avg_dims.items())}}}" if avg_dims else "")
     )
 

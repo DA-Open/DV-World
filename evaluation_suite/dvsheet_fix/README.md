@@ -1,54 +1,77 @@
-# DVSheet-Fix 评估（Windows + Office + xlwings）
+# DVSheet-Fix Evaluation
 
-DVSheet-Fix 的 **Candidate** 与 **Gold Standard** 都是 Excel 文件；评估在 Windows + Microsoft Excel 环境下，通过 `xlwings` 调用 Excel COM 读取图表对象，比较：
-- 图表类型（折线/柱状/饼图等）
-- 系列绑定（categories / values 对应的数据序列）
-- 坐标轴范围是否为自动/手动（用于轴刻度修复类任务）
+## Environment
 
-## 依赖
+Run this evaluation on **Windows**.
 
-`evaluation_suite/requirements.txt`：
-- `xlwings`
-- `pywin32`（Windows）
+This task depends on Microsoft Excel / `xlwings` to inspect and compare workbook and chart state.
 
-## 目录约定
+## What it evaluates
 
-- 候选结果：`<inputs>/<case_id>/*.xlsx`
-- 正确答案：`evaluation_suite/gold/<case_id>/*.xlsx`
-- 仅评估 `case_id` 以 `dvsheet-fix` 开头的任务。
+This evaluator is for `dvsheet-fix-*` cases.
 
-## 运行
+It compares the candidate Excel workbook against the gold workbook.
 
-```bash
-python evaluation_suite/dvsheet_fix/run_eval.py --inputs /Users/bytedance/Documents/DVSheet/evaluation_suite/results/gemini-3-pro-preview-new-create-test1 --gold-dir evaluation_suite/gold --out-dir evaluation_suite/model_score
-```
+When a broken workbook is available, it first infers the required fixes from `broken -> gold`, then checks whether the candidate fixed all required fields.
 
-输出：`evaluation_suite/model_score/<inputs_name>/dvsheet-fix-results.json`
+## Inputs
 
-## 使用 Broken 做 0/1 判定（推荐）
+- candidate results: `evaluation_suite/results/<run_name>/dvsheet-fix-*`
+- gold data: `dv-sheet/gold/dvsheet-fix-*`
 
-如果你有每个 case 的初始待修复文件（Broken），评估器会先比较 `Broken vs Gold` 自动推导“必须修复的关键属性（must-fix）”，然后对 Candidate 做硬门槛判定：**全部修到则 1，否则 0**。
+Each candidate case should contain:
 
-### 方式 A：Broken 与 Gold 放在同一个 gold 目录（文件名含 start）
+- a candidate Excel file (`.xlsx` or `.xls`)
 
-约定：`evaluation_suite/gold/<case_id>/` 下同时存在：
-- `*start*.xlsx`：Broken（初始待修复文件）
-- 另一个 `*.xlsx`：Gold（正确答案文件）
+Each gold case should contain:
 
-运行：
-```bash
-python evaluation_suite/dvsheet_fix/run_eval.py --inputs evaluation_suite/results/codex --gold-dir evaluation_suite/gold --out-dir evaluation_suite/model_score
-```
+- a gold Excel file
+- optionally a broken workbook such as `*start*.xlsx` or `*broken*.xlsx`
 
-### 方式 B：单独提供 broken-dir
+## Run
+
+Use:
 
 ```bash
-python evaluation_suite/dvsheet_fix/run_eval.py --inputs evaluation_suite/results/codex --broken-dir evaluation_suite/broken --gold-dir evaluation_suite/gold --out-dir evaluation_suite/model_score
+python evaluation_suite/dvsheet_fix/run_eval.py \
+  --inputs evaluation_suite/results/<run_name> \
+  --gold-dir dv-sheet/gold \
+  --out-dir evaluation_suite/model_score
 ```
 
-约定：`evaluation_suite/broken/<case_id>/*.xlsx`
+Useful optional flags:
 
-调试模式（显示 Excel 窗口）：
+- `--broken-dir dv-sheet/gold`
+- `--visible`
+- `--workers 1`
+
+If broken files are stored separately:
+
 ```bash
-python evaluation_suite/dvsheet_fix/run_eval.py --inputs <...> --visible
+python evaluation_suite/dvsheet_fix/run_eval.py \
+  --inputs evaluation_suite/results/<run_name> \
+  --broken-dir evaluation_suite/broken \
+  --gold-dir dv-sheet/gold \
+  --out-dir evaluation_suite/model_score
 ```
+
+## Output
+
+The result JSON is written to:
+
+```bash
+evaluation_suite/model_score/<run_name>/dvsheet-fix-results.json
+```
+
+It includes:
+
+- per-case score
+- matched status
+- summary average
+
+## Notes
+
+- Run this task on Windows.
+- This task requires Microsoft Excel / xlwings.
+- If either the candidate workbook or gold workbook is missing, the case is skipped.
+- `--visible` is useful for debugging Excel-side issues.

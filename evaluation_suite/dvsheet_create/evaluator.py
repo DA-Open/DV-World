@@ -1,12 +1,11 @@
 """
-DVSheet Create task evaluator（文本版 VLM 评估）。
+DVSheet Create task evaluator using a text-mode VLM judge.
 
-评估思路：
-1) 功能 30%：图表存在性、非遮挡率（重叠越小越好）、动态系列覆盖率（引用单元格越多越好）。
-2) 视觉 70%：图像 + 文本摘要 + 用户指令 + Rubric。
+Evaluation approach:
+1) Functionality 30%: chart existence, non-overlap ratio, and dynamic series coverage.
+2) Visual quality 70%: image, text summary, user instruction, and rubric.
 
-模型调用方式：读取 config.model_config 里的配置（含 base_url/model_name/api_key 等），
-prompt 构造放在 prompt.py 的 build_vlm_prompt。
+Model calls read config.model_config, and prompt construction lives in prompt.py.
 """
 
 from __future__ import annotations
@@ -65,14 +64,14 @@ def evaluate_task(
     table_weight: float = 0.3,
 ) -> EvalResult:
     """
-    Evaluate a DVSheet-Create submission on a single worksheet（文本模式）。
+    Evaluate a DVSheet-Create submission on a single worksheet in text mode.
 
     :param sheet: openpyxl worksheet containing the chart to grade.
-    :param query_text: 用户原始指令。
-    :param rubric_text: 视觉评分 rubric 文本。
+    :param query_text: Original user instruction.
+    :param rubric_text: Visual scoring rubric text.
     :param task_type: free-form string for logging (e.g., "bubble").
-    :param workbook_path: 原始 Excel 路径（用于提取表格）。
-    :param model_name: 模型配置名，见 config.model_config。
+    :param workbook_path: Original Excel path used for table extraction.
+    :param model_name: Model config name from config.model_config.
     """
     debug_lines = []
 
@@ -175,9 +174,9 @@ def first_chart(sheet: Worksheet):
 def used_range_bbox(sheet: Worksheet) -> Tuple[int, int, int, int]:
     """
     Return bounding box of non-empty cells (0-based inclusive): (min_col, min_row, max_col, max_row).
-    - 仅基于当前 sheet。
-    - 忽略 None 和纯空字符串（空格会被 strip 再判断）。
-    - 若没有任何非空单元格，则返回 (0,0,-1,-1)，后续面积会是 0。
+    - Based only on the current sheet.
+    - Ignore None values and blank strings after stripping whitespace.
+    - If there are no non-empty cells, return (0,0,-1,-1); downstream area is 0.
     """
     min_c = min_r = None
     max_c = max_r = None
@@ -206,8 +205,8 @@ def used_range_bbox(sheet: Worksheet) -> Tuple[int, int, int, int]:
 def chart_bbox(chart, sheet: Worksheet, default_cols: int = 6, default_rows: int = 12) -> Tuple[int, int, int, int]:
     """
     Extract chart bounding box in 0-based inclusive cell indices.
-    - 如果有 _to，直接用两点锚。
-    - 如果只有单点锚，使用固定默认宽高（default_cols x default_rows），避免面积为 1 造成过严的遮挡扣分。
+    - If _to exists, use the two-point anchor directly.
+    - If only a one-point anchor exists, use a fixed default size to avoid overly strict overlap penalties.
     """
     anchor = chart.anchor
     frm = getattr(anchor, "_from", None)
@@ -226,9 +225,9 @@ def chart_bbox(chart, sheet: Worksheet, default_cols: int = 6, default_rows: int
 
 def check_overlap(chart, sheet: Worksheet) -> Tuple[float, int, int]:
     """
-    计算非遮挡率：1 - (overlap_area / data_area)
-    分母使用当前表的有效数据面积（非空单元格矩形），分子为数据与图表的重叠单元格数。
-    返回 (score, overlap_area, data_area)
+    Compute the non-overlap ratio: 1 - (overlap_area / data_area).
+    The denominator is the active data rectangle and the numerator is chart/data overlap.
+    Return (score, overlap_area, data_area).
     """
     c_min_c, c_min_r, c_max_c, c_max_r = chart_bbox(chart, sheet)
     d_min_c, d_min_r, d_max_c, d_max_r = used_range_bbox(sheet)
@@ -274,7 +273,7 @@ def _series_is_dynamic(ser) -> bool:
 
 def blind_injection_test(chart) -> Tuple[float, int, int]:
     """
-    动态系列覆盖率：动态系列数 / 总系列数。
+    Dynamic series coverage: dynamic series count / total series count.
     """
     series = getattr(chart, "series", [])
     total = len(series)
@@ -479,7 +478,7 @@ def _table_coverage(cand_sheet: Worksheet, cand_wb_path: Optional[Path], gold_wb
 
 def chart_to_text(chart, sheet: Worksheet) -> str:
     """
-    Summarize chart series into plain text for LLM输入。
+    Summarize chart series into plain text for LLM input.
     """
     lines = []
     for idx, ser in enumerate(getattr(chart, "series", []), start=1):
@@ -504,8 +503,7 @@ def chart_to_text(chart, sheet: Worksheet) -> str:
 # ---------------------------------------------------------------------------
 
 def _parse_score_from_text(content: str) -> float:
-    # 优先匹配“总得分”
-    match = re.search(r"总得分\s*[:=]?\s*([+-]?[0-9]+(?:\.[0-9]+)?)", content)
+    match = re.search(r"Total_Score\s*[:=]?\s*([+-]?[0-9]+(?:\.[0-9]+)?)", content)
     if match:
         return float(match.group(1))
     match = re.search(r"([+-]?[0-9]+(?:\.[0-9]+)?)\s*/?\s*10", content)
@@ -546,10 +544,10 @@ def _normalize(value: float, min_v: float, max_v: float) -> float:
 
 def _parse_vlm_json(content: str, max_scores: Dict[str, float]) -> Dict[str, Any]:
     """
-    解析模型返回的 JSON：
-    - 维度：Fidelity / Logic / Aesthetics（或“维度1/2/3”按序映射）。
-    - 总分：total 或 “总得分”。
-    归一化：每个维度 raw/max，最终总分按权重 4:3:3 做加权平均（百分位）。
+    Parse JSON returned by the model.
+    - Dimensions: Fidelity / Logic / Aesthetics, with numbered dimensions mapped by order.
+    - Total score: total or Total_Score.
+    Normalize each dimension by raw/max and compute a 4:3:3 weighted percentile total.
     """
     default_max = {
         "Fidelity": max_scores.get("Fidelity", 8),
@@ -576,7 +574,6 @@ def _parse_vlm_json(content: str, max_scores: Dict[str, float]) -> Dict[str, Any
     if parsed and isinstance(parsed, dict):
         scores = parsed.get("scores") or parsed.get("score") or parsed
         if isinstance(scores, dict):
-            # 常规命名
             for key in ["Fidelity", "Logic", "Aesthetics"]:
                 if key in scores:
                     val = scores[key]
@@ -584,21 +581,18 @@ def _parse_vlm_json(content: str, max_scores: Dict[str, float]) -> Dict[str, Any
                         assign_dim(key, val.get("score", 0.0))
                     else:
                         assign_dim(key, val)
-            # 维度1/2/3 按序映射
             if not dims_raw:
-                for idx, key in enumerate(["维度1", "维度2", "维度3"], start=1):
+                for idx, key in enumerate(["Dimension_1", "Dimension_2", "Dimension_3"], start=1):
                     if key in scores:
                         dim_name = ["Fidelity", "Logic", "Aesthetics"][idx - 1]
                         val_dict = scores[key] if isinstance(scores[key], dict) else {}
-                        # 优先取“总得分”
-                        if isinstance(val_dict, dict) and "总得分" in val_dict:
-                            assign_dim(dim_name, val_dict["总得分"])
+                        if isinstance(val_dict, dict) and "Total_Score" in val_dict:
+                            assign_dim(dim_name, val_dict["Total_Score"])
                         else:
                             assign_dim(dim_name, val_dict if isinstance(val_dict, (int, float)) else 0.0)
-            # 总分
             tot_val = scores.get("total")
-            if tot_val is None and "总得分" in scores:
-                tot_val = scores.get("总得分")
+            if tot_val is None and "Total_Score" in scores:
+                tot_val = scores.get("Total_Score")
             if isinstance(tot_val, dict) and "score" in tot_val:
                 total_raw = float(tot_val.get("score", 0.0))
             elif tot_val is not None:
@@ -606,18 +600,15 @@ def _parse_vlm_json(content: str, max_scores: Dict[str, float]) -> Dict[str, Any
                     total_raw = float(tot_val)
                 except Exception:
                     total_raw = None
-        # fallback: 如果顶层直接有“总得分”
-        if total_raw is None and isinstance(parsed, dict) and "总得分" in parsed:
+        if total_raw is None and isinstance(parsed, dict) and "Total_Score" in parsed:
             try:
-                total_raw = float(parsed["总得分"])
+                total_raw = float(parsed["Total_Score"])
             except Exception:
                 total_raw = None
 
-    # 如果有维度分，但无总分，用维度分之和
     if total_raw is None and dims_raw:
         total_raw = sum(dims_raw.values())
 
-    # 归一化
     if dims_norm:
         weighted = (
             dims_norm.get("Fidelity", 0.0) * weights["Fidelity"]
@@ -626,7 +617,6 @@ def _parse_vlm_json(content: str, max_scores: Dict[str, float]) -> Dict[str, Any
         )
         total_norm = weighted / sum(weights.values())
     else:
-        # 没有维度分，退化到总分/满分
         total_raw = total_raw if total_raw is not None else 0.0
         total_norm = _normalize(total_raw, 0.0, default_max["Total"])
 
@@ -702,7 +692,6 @@ def _parse_rubric_scores(content: str, max_scores: Dict[str, float]) -> Dict[str
     else:
         total_raw = _parse_score_from_text(content)
 
-    # 尝试将“Dimension_1/2/3”映射为 Fidelity/Logic/Aesthetics（按序）以适配 metadata
     if dim_scores and max_scores:
         canonical = ["Fidelity", "Logic", "Aesthetics"]
         if all(k.startswith("Dimension") for k in dim_scores.keys()) and all(k in max_scores for k in canonical):
@@ -714,7 +703,6 @@ def _parse_rubric_scores(content: str, max_scores: Dict[str, float]) -> Dict[str
                     reordered[k] = v
             dim_scores = reordered
 
-    # 总分归一化：优先 metadata 的 Total；缺失则 total_norm=0
     total_points = max_scores.get("Total") if max_scores else None
     total_norm = max(0.0, min(1.0, total_raw / total_points)) if total_points and total_points > 0 else 0.0
 
@@ -736,7 +724,7 @@ def _parse_rubric_scores(content: str, max_scores: Dict[str, float]) -> Dict[str
 
 def vlm_judge_mm(query_text: str, rubric_text: str, max_scores: Dict[str, float], chart_text: str, chart_img: Path, model_name: str):
     """
-    多模态评估：文本 + 图像。
+    Multimodal evaluation: text + image.
     """
     if model_name not in model_config:
         raise ValueError(f"Model config '{model_name}' not found.")
