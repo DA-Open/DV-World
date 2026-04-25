@@ -6,19 +6,12 @@ __pycache__/
 .vscode/
 logs/
 old/
-output/
 cache/
-plotcraft/
 dataset/
 dataset-iclr/start_claude.sh
 ~$*.xlsx
 ~$*.xlsm
 ~$*.xls
-evaluation_suite/results/
-tasks/
 dev/
-gold/
-output/
-model_score/
 .zip
 
