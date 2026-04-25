@@ -6,13 +6,13 @@
   <p>
     &nbsp;&nbsp;🌐 <a href="">Website</a>&nbsp;&nbsp;|&nbsp;&nbsp;
     📑 <a href="">Paper</a>&nbsp;&nbsp;|&nbsp;&nbsp;
-    🤗 <a href="https://huggingface.co/DV-World">Dataset</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+    🤗 <a href="https://huggingface.co/datasets/DV-World/dvworld">Dataset</a>&nbsp;&nbsp;|&nbsp;&nbsp;
     🐥 <a href="">Twitter</a>&nbsp;&nbsp;
   </p>
 </div>
 
 ## 📰 News 
-- **2025-12-08**: 🔥 We release the [DV-World dataset]() and the [paper]().
+- **2026-04-28**: 🔥 We release the [DV-World dataset]() and the [paper]().
 
 
 ## Overview
