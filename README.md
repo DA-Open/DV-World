@@ -1,8 +1,9 @@
 <div align="center">
-  <h1 align="center">DV-World</h1>
-  <p align="center">
-    A benchmark and baseline workspace for data visualization agents across
-  </p>
+  <h1 align="center">
+    <img src="assets/dvworld_logo.png" width="230" alt="DVWorld Logo" />
+    <br>
+    Benchmarking Data Visualization Agents in Real-World Scenarios
+  </h1>
   <p>
     &nbsp;&nbsp;🌐 <a href="">Website</a>&nbsp;&nbsp;|&nbsp;&nbsp;
     📑 <a href="">Paper</a>&nbsp;&nbsp;|&nbsp;&nbsp;
