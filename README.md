@@ -18,11 +18,11 @@
 
 ## Overview
 
-DV-World is a benchmark-oriented repository for studying data visualization agents under three complementary settings:
+**_DV-Sheet_** focuses on *native spreadsheet visualization workflows*. Instead of generating standalone plotting code, an agent must directly manipulate spreadsheet workbooks to **create charts**, **repair broken visualizations**, and **assemble dashboards** under realistic software constraints.
 
-- **DV-Evolution**: generate target visualizations and structured outputs from task specifications
-- **DV-Interact**: solve visualization tasks through multi-turn interaction, including user-simulator feedback
-- **DV-Sheet**: operate on spreadsheet-centric visualization tasks, including chart creation, dashboard understanding, and workbook repair
+**_DV-Evolution_** targets *cross-modal and cross-framework visualization adaptation*. Given a reference visual artifact, a new dataset, and modification requirements, the agent must infer the original visual semantics and produce an updated executable visualization in a target framework such as **Python**, **D3.js**, **Plotly.js**, **Vega-Lite**, or **Apache ECharts**.
+
+**_DV-Interact_** evaluates *proactive clarification and intent alignment* in ambiguous visualization tasks. The agent operates in a stateful environment and interacts with a user simulator, testing whether it can **ask appropriate questions**, **resolve ambiguity through interaction**, and **avoid assumption-first execution**.
 
 
 <div align="center">
