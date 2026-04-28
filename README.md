@@ -5,7 +5,7 @@
     Benchmarking Data Visualization Agents in Real-World Scenarios
   </h1>
   <p>
-    &nbsp;&nbsp;🌐 <a href="">Website</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+    &nbsp;&nbsp;🌐 <a href="https://dv-world-project.github.io/">Website</a>&nbsp;&nbsp;|&nbsp;&nbsp;
     📑 <a href="">Paper</a>&nbsp;&nbsp;|&nbsp;&nbsp;
     🤗 <a href="https://huggingface.co/datasets/DV-World/dvworld">Dataset</a>&nbsp;&nbsp;|&nbsp;&nbsp;
     🐥 <a href="">Twitter</a>&nbsp;&nbsp;
