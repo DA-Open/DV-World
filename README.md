@@ -6,14 +6,14 @@
   </h1>
   <p>
     &nbsp;&nbsp;🌐 <a href="https://dv-world-project.github.io/">Website</a>&nbsp;&nbsp;|&nbsp;&nbsp;
-    📑 <a href="">Paper</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+    📑 <a href="https://arxiv.org/abs/2604.25914">Paper</a>&nbsp;&nbsp;|&nbsp;&nbsp;
     🤗 <a href="https://huggingface.co/datasets/DV-World/dvworld">Dataset</a>&nbsp;&nbsp;|&nbsp;&nbsp;
     🐥 <a href="">Twitter</a>&nbsp;&nbsp;
   </p>
 </div>
 
 ## 📰 News 
-- **2026-04-28**: 🔥 We release the [DV-World dataset]() and the [paper]().
+- **2026-04-28**: 🔥 We release the [DV-World dataset](https://huggingface.co/datasets/DV-World/dvworld) and the [paper](https://arxiv.org/abs/2604.25914).
 
 
 ## Overview
@@ -116,12 +116,20 @@ Evaluation guides:
 
 
 # 📋 Leaderboard Submission
-To submit your agent results to the leaderboard, please follow the instructions in  [DAComp Submission Guidelines]().
+To submit your agent results to the leaderboard, please follow the instructions in  [DV-World Submission Guidelines]().
 
 
 
 # ✍️ Citation
 If you find our work helpful, please cite as
 ```
-
+@misc{meng2026dvworldbenchmarkingdatavisualization,
+      title={DV-World: Benchmarking Data Visualization Agents in Real-World Scenarios}, 
+      author={Jinxiang Meng and Shaoping Huang and Fangyu Lei and Jingyu Guo and Haoxiang Liu and Jiahao Su and Sihan Wang and Yao Wang and Enrui Wang and Ye Yang and Hongze Chai and Jinming Lv and Anbang Yu and Huangjing Zhang and Yitong Zhang and Yiming Huang and Zeyao Ma and Shizhu He and Jun Zhao and Kang Liu},
+      year={2026},
+      eprint={2604.25914},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2604.25914}, 
+}
 ```
